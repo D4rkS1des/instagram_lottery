@@ -20,6 +20,7 @@ class Lottery:
         :param password: sting with password to instagram account
         """
         self.api = Client(user_name, password)
+        self.user_id = self.api.authenticated_user_id
 
     def get_threads(self, followers):
         """
@@ -60,7 +61,7 @@ class Lottery:
                 message_list += current_user_messages['items']
             for message in message_list:
                 try:
-                    if message['user_id'] == self.api.authenticated_user_id and message['text'].startswith('Ваш номер в розыгрыше'):
+                    if message['user_id'] == int(self.user_id) and message['text'].startswith('Ваш номер в розыгрыше'):
                         users_who_accepted.append(thread['username'])
                         break
                 except Exception as err:
@@ -68,7 +69,7 @@ class Lottery:
         return users_who_accepted
 
     def get_followers(self):
-        followers = self.api.user_followers(self.api.authenticated_user_id, self.api.generate_uuid())
+        followers = self.api.user_followers(int(self.user_id), self.api.generate_uuid())
         users_who_following = []
         for follower in followers['users']:
             users_who_following.append(follower['username'])
@@ -98,7 +99,7 @@ def piu(user_name, password):
     followers = insta_api.get_followers()
     threads = insta_api.get_threads(followers)
     users_who_accepted = insta_api.get_users_who_participant(threads)
-    winners, possible_winners = get_winners(users_who_accepted, followers)
+    winners, possible_winners = get_winners(followers, users_who_accepted)
     print('Всего человек участвовало: ' + str(len(possible_winners)))
     print('Все аккаунты участвовавшие в конкурсе:')
     print(possible_winners)
